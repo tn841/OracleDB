@@ -183,6 +183,95 @@ WHERE SAL = ANY(
                 
                 
                 
+/*
+ ODER BY절 subquery 사용
+*/
+SELECT EMPNO, ENAME,DEPTNO,       
+      ( SELECT DNAME FROM DEPT WHERE DEPTNO = e.DEPTNO ) AS "DNAME"
+FROM EMP e
+ORDER BY (SELECT DNAME FROM DEPT WHERE DEPTNO = e.DEPTNO);
+
+
+SELECT EMPNO,
+       ENAME,
+       DEPTNO,
+       (
+        SELECT DNAME FROM DEPT WHERE DEPTNO = e.DEPTNO
+       ) AS "부서이름"
+FROM EMP e
+ORDER BY 부서이름;
+
+
+
+/*
+  CASE 조건절,결과절
+*/
+
+SELECT  EMPNO,
+        ENAME,
+        DEPTNO,
+        (
+         CASE WHEN DEPTNO=20
+         THEN 'ACCOUNTING' 
+         ELSE 'SALES'
+         END
+        ) AS "새부서"
+FROM EMP;        
+
+SELECT  EMPNO,
+        ENAME,
+        DEPTNO,
+        (
+         CASE WHEN DEPTNO=20
+         THEN (SELECT DNAME FROM DEPT WHERE DEPTNO=10) 
+         ELSE (SELECT DNAME FROM DEPT WHERE DEPTNO=30)
+         END
+        ) AS "바뀐부서"
+FROM EMP
+ORDER BY "바뀐부서" ASC; 
+
+
+--스칼라 서브쿼리와 JOIN의비교
+
+SELECT e.EMPNO,e.ENAME,d.DNAME,d.LOC
+FROM EMP e 
+     JOIN
+     DEPT d
+     ON e.DEPTNO=d.DEPTNO;
+
+SELECT  e.EMPNO,
+        e.ENAME,
+        (
+          SELECT DNAME FROM DEPT d WHERE d.DEPTNO=e.DEPTNO
+        ) as 부서이름,
+        (
+          SELECT LOC FROM DEPT d WHERE d.DEPTNO=e.DEPTNO
+        ) as 부서위치
+FROM EMP e;
+
+
+--INLINE VIEW(서브쿼리)
+
+SELECT DEPTNO,AVG(SAL) AS "DEPT_AVG_SAL"
+FROM EMP
+GROUP BY DEPTNO
+HAVING AVG(SAL)>2000;
+--(1)
+SELECT DEPTNO,AVG(SAL) FROM EMP GROUP BY DEPTNO;
+
+SELECT *
+FROM ( SELECT 
+       DEPTNO,
+       AVG(SAL) "평균급여"
+       FROM EMP 
+       GROUP BY DEPTNO
+      );
+
+                
+                
+                
+                
+                
                 
 /*
     실습문제
