@@ -258,101 +258,34 @@ GROUP BY DEPTNO
 HAVING AVG(SAL)>2000;
 --(1)
 SELECT DEPTNO,AVG(SAL) FROM EMP GROUP BY DEPTNO;
-
-SELECT *
+--(2)
+SELECT 부서별평균급여테이블.*
 FROM ( SELECT 
        DEPTNO,
-       AVG(SAL) "평균급여"
+       AVG(SAL)
        FROM EMP 
        GROUP BY DEPTNO
-      );
+      ) "부서별평균급여테이블";
+      
+      
+SELECT 부서별평균급여테이블.DEPTNO,부서별평균급여테이블.평균
+FROM ( SELECT 
+       DEPTNO,
+       AVG(SAL) "평균"
+       FROM EMP 
+       GROUP BY DEPTNO
+      ) "부서별평균급여테이블";
+
 
                 
                 
                 
+SELECT EMP_DEPT.*
+FROM (  SELECT *
+        FROM EMP e JOIN DEPT d
+        ON e.DEPTNO = d.DEPTNO ) "EMP_DEPT"; -- INLINE VIEW 테이블의 alias를 주고 활용
                 
-                
-                
-/*
-    실습문제
-*/
-
--- 1. 사원 테이블에서 BLAKE 보다 급여가 맣ㄴ은 사원들의 사번 이름 급여를 검색
-SELECT e.EMPNO, e.ENAME, e.SAL
-FROM EMP e
-WHERE e.SAL > (
-                SELECT SAL
-                FROM EMP
-                WHERE ENAME LIKE 'BLAKE'
-              );
-              
-
-
--- 2. 사원 테이블에서 MILLER 보다 늦게 입사한 사원의 사번 이름 입사일 검색
-SELECT e.EMPNO, e.ENAME, TO_CHAR(e.HIREDATE, 'DD') 입사일
-FROM EMP e
-WHERE TO_NUMBER(TO_CHAR(e.HIREDATE, 'DD')) > (
-              SELECT TO_NUMBER(TO_CHAR(e.HIREDATE, 'DD'))
-                FROM EMP e
-                WHERE ENAME LIKE 'MILLER'
-              );
-
- SELECT TO_NUMBER(TO_CHAR(e.HIREDATE, 'DD'))
-                FROM EMP e
-                WHERE ENAME LIKE 'MILLER';
-
--- 3. 사원 테이블에서 사원 전체 평균 급여보다 급여가 많은 사원들의 사번, 이름, 급여를 검색
-SELECT e.EMPNO, e.ENAME, e.SAL
-FROM EMP e
-WHERE e.SAL > (
-              SELECT AVG(e.SAL)
-                FROM EMP e
-              );
-              
-              SELECT AVG(e.SAL)
-                FROM EMP e;
-
-
--- 4. 사원 테이블에서 CLARK와 같은 부서이며, 사번이 7698인 직원의 급여보다 많은 급여를 받는 사원들의
---     사원들의 사번, 이름, 급여를 검색
-SELECT e.EMPNO, e.ENAME, e.SAL
-FROM EMP e JOIN DEPT d
-ON e.DEPTNO = d.DEPTNO
-WHERE e.JOB LIKE (
-                SELECT JOB
-                FROM EMP
-                WHERE ENAME LIKE 'CLARK' 
-              ) AND 
-              e.SAL > (
-                SELECT SAL
-                FROM EMP
-                WHERE EMPNO = 7698
-              );
-              
-             SELECT JOB
-                FROM EMP
-                WHERE ENAME LIKE 'CLARK';
-                
-              SELECT SAL
-              FROM EMP
-              WHERE EMPNO = 7698;
-
-
--- 5. 사원 테이블에서 부서별 최대 급여를 받는 사원들의 사번, 이름, 부서코드, 급여를 검색
-SELECT *
-FROM EMP e 
-WHERE SAL IN (SELECT MAX(SAL)
-          FROM EMP
-          GROUP BY DEPTNO);
-
-SELECT *
-FROM EMP
-WHERE SAL = ANY(
-                SELECT MAX(SAL)
-                FROM EMP
-                GROUP BY DEPTNO
-                );
-                
+      
 
 
 
