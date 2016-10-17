@@ -251,41 +251,93 @@ FROM EMP e;
 
 
 --INLINE VIEW(서브쿼리)
-
+-------------- CASE1 ----------------
+----A. NO INLINE VIEW------
 SELECT DEPTNO,AVG(SAL) AS "DEPT_AVG_SAL"
 FROM EMP
 GROUP BY DEPTNO
 HAVING AVG(SAL)>2000;
---(1)
+
+----B. INLINE VIEW------
 SELECT DEPTNO,AVG(SAL) FROM EMP GROUP BY DEPTNO;
---(2)
+
 SELECT 부서별평균급여테이블.*
-FROM ( SELECT 
-       DEPTNO,
-       AVG(SAL)
+FROM ( SELECT DEPTNO, AVG(SAL) AS 부서평균
        FROM EMP 
        GROUP BY DEPTNO
-      ) "부서별평균급여테이블";
-      
-      
-SELECT 부서별평균급여테이블.DEPTNO,부서별평균급여테이블.평균
-FROM ( SELECT 
-       DEPTNO,
-       AVG(SAL) "평균"
-       FROM EMP 
-       GROUP BY DEPTNO
-      ) "부서별평균급여테이블";
+      ) 부서별평균급여테이블
+WHERE 부서별평균급여테이블.부서평균 > 2000;
 
 
-                
-                
-                
-SELECT EMP_DEPT.*
-FROM (  SELECT *
-        FROM EMP e JOIN DEPT d
-        ON e.DEPTNO = d.DEPTNO ) "EMP_DEPT"; -- INLINE VIEW 테이블의 alias를 주고 활용
-                
+-------------- CASE2 ----------------
+------A. No Inline View ----
+SELECT d.DNAME, e.DEPTNO, AVG(e.SAL) AS 부서평균
+FROM EMP e JOIN DEPT d
+ON e.DEPTNO = d.DEPTNO
+GROUP BY d.DNAME, e.DEPTNO
+HAVING 부서평균 > 2000;
+
+-----B. Inline View ----
+SELECT DEPTNO, AVG(SAL) FROM EMP GROUP BY DEPTNO;
+
+SELECT *
+FROM (  SELECT DEPTNO, AVG(SAL) 부서평균
+        FROM EMP
+        GROUP BY DEPTNO) dAVG_T JOIN DEPT d
+ON dAVG_T.DEPTNO = d.DEPTNO
+WHERE dAVG_T.부서평균 > 2000;
+
+
+-- 절차성을 위한 인라인뷰의 활용
+/*
+  업무별 평균급여보다 급여가 높은 사원을 대상으로
+  업무별 평균급여를 10% 초과하는 사원의 급여를 5% 차감
+*/
+
+-- 1. 업무별 평균급여
+SELECT JOB, AVG(SAL)
+FROM EMP
+GROUP BY JOB;
+
+-- 2. 업무별 평균급여보다 급여가 높은 사원
+SELECT e2.ENAME,e2.JOB, e_avg, e2.SAL, round(e2.SAL/e_avg * 100,1) "평균임금 대비"
+FROM (SELECT JOB, AVG(SAL) e_avg
+      FROM EMP
+      GROUP BY JOB) e1 JOIN EMP e2
+ON e1.JOB = e2.JOB
+WHERE e2.SAL > e1.e_avg;
+
+-- 3. 평균 급여를 10%초과하는 사원
+SELECT e2.ENAME,e2.JOB, e_avg, e2.SAL
+FROM (SELECT JOB, AVG(SAL) e_avg
+      FROM EMP
+      GROUP BY JOB) e1 JOIN EMP e2
+ON e1.JOB = e2.JOB
+WHERE e2.SAL > (e1.e_avg + e1.e_avg*0.1);
+
+-- 4. 평균 급여를 10%초과하는 사원의 급여를 5% 차감
+SELECT result_T.ENAME, result_T.SAL "CURRENT_SAL", result_T.SAL - result_T.SAL*0.05 "NEW_SAL"
+FROM (SELECT e2.ENAME,e2.JOB, e_avg, e2.SAL
+      FROM (SELECT JOB, AVG(SAL) e_avg
+            FROM EMP
+            GROUP BY JOB) e1 JOIN EMP e2
+      ON e1.JOB = e2.JOB
+      WHERE e2.SAL > (e1.e_avg + e1.e_avg*0.1)) result_T;
       
+      
+      
+      
+      
+      
+--VIEW 생성
+--"insufficient privileges" -> sys계정에서 현재 사용자인 'SCOTT'에게 VIEW 생성 권한 추가하면 해결됨 GRANT CREATE VIEW TO SCOTT;
+CREATE VIEW EMP_DEMP
+AS
+SELECT EMPNO, ENAME, DNAME, LOC
+FROM EMP, DEPT
+WHERE EMP.DEPTNO = DEPT.DEPTNO;
+
+
 
 
 
