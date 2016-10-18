@@ -160,5 +160,21 @@ WHERE DEPTNO=(
 --transaction
 COMMIT;
 
+--transaction start! (DML문 시작과 동시에..)
+UPDATE DEPT SET DNAME = '영업부'
+WHERE DEPTNO = 30;
+
+COMMIT;
+--transaction end (COMMIT과 동시에 종료됨)
+
+
+--transaction start! (DML문 시작과 동시에..)
+DELETE FROM EMP;
+SELECT * FROM EMP;
+
+ROLLBACK;
+--transaction end (ROLLBACK 동시에 종료됨)
+
+
 
 
